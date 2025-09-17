@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "baseUrl": ".",
+        "paths": {
+            "three": ["js/vendor/three/three.js"],
+            "three/*": ["js/vendor/three/*"],
+            "urdf-loader/*": ["vendor/js/urdf-loader/*"],
+            "closed-chain-ik-js": ["vendor/js/closed-chain-ik-js.js"]
+        }
+    }
+}
