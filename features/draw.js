@@ -3,39 +3,66 @@
 
 /**
  * @typedef {Object} SDF
- * @prop {Point[]} points
+ * @prop {Point3D[]} points3
+ * @prop {Point2D[]} points2
  * @prop {number[]} floats
  * @prop {number[]} ints
  * @prop {number[]} ops
  */
 
 /**
- * @typedef {[number, number]} Point
+ * @typedef {[number, number]} Point2D
+ * @typedef {[number, number, number]} Point3D
  */
-const OP_POINT_SUBTRACT = 0;
-const OP_POINT_LENGTH = 1;
+const OP_POINT2_SUBTRACT = 0;
+const OP_POINT2_LENGTH = 1;
 const OP_FLOAT_SUBTRACT = 2;
+const OP_FLOAT_ABS = 3;
+const OP_POINT3_DROP = 4;
+const OP_FLOAT_JMP = 5;
 
 /** @type {{[opId in number]: (sdf: SDF) => void}} */
 const ops = {
-  [OP_POINT_SUBTRACT]: ({ points }) => {
-    const a = points.pop();
-    const b = points.pop();
-    /** @type {Point} */
+  [OP_POINT2_SUBTRACT]: ({ points2 }) => {
+    const a = points2.pop();
+    const b = points2.pop();
+    /** @type {Point2D} */
     const result = [b[0] - a[0], b[1] - a[1]];
-    points.push(result);
+    points2.push(result);
   },
   [OP_FLOAT_SUBTRACT]: ({ floats }) => {
     const a = floats.pop();
     const b = floats.pop();
-    const result = a-b;
+    const result = a - b;
     floats.push(result);
   },
-  [OP_POINT_LENGTH]: ({ points, floats }) => {
-    const a = points.pop();
+  [OP_POINT2_LENGTH]: ({ points2, floats }) => {
+    const a = points2.pop();
     const result = Math.sqrt(a[0] ** 2 + a[1] ** 2);
     floats.push(result);
   },
+  [OP_FLOAT_ABS]: ({ floats }) => {
+    const a = floats.pop()
+    const result = Math.abs(a)
+    floats.push(result)
+  },
+  [OP_POINT3_DROP]: ({points3}) => {
+    points3.pop()
+  },
+  [OP_FLOAT_JMP]: ({ints, floats, ops}) => {
+    const a = ints.pop()
+    const b = ints.pop()
+
+    const t = floats.pop()
+    
+    
+    if (t > 0) {
+      ops.splice(a, b)
+    }
+    else {
+      ops.splice(0, a)
+    }
+  }
 };
 
 /**
@@ -51,14 +78,25 @@ function op(sdf) {
 
 // param: vec2 p, float r
 // type: (points: [center, ...], floats: [radius, ...]) => (points: [...], floats: [sdf, ...])
-/** @type {(center: Point, radius: number) => (sdf: SDF) => void} */
-const sdf_circle =
+/** @type {(center: Point2D, radius: number) => (sdf: SDF) => void} */
+const sdf_circle2 =
   (center, radius) =>
-  ({ points, floats, ops }) => {
-    points.push(center);
+  ({ points2, floats, ops }) => {
+    points2.push(center);
     floats.push(radius);
-    ops.push(OP_FLOAT_SUBTRACT, OP_POINT_LENGTH, OP_POINT_SUBTRACT);
+    ops.push(OP_FLOAT_SUBTRACT, OP_POINT2_LENGTH, OP_POINT2_SUBTRACT);
   };
+
+/** @type {(color: Point3D, width: number) => (sdf: SDF) => void} */
+const sdf_line2 =
+  (color, width) =>
+  ({floats, ints, ops, points3}) => {
+    // assume: "distance"
+    floats.push(width)
+    ints.push(0, 1)
+    points3.push(color)
+    ops.push(OP_POINT3_DROP, OP_FLOAT_JMP, OP_FLOAT_SUBTRACT, OP_FLOAT_ABS)
+  }
 
 /**
  * Plots a 2d SDF to a canvas
@@ -68,8 +106,12 @@ const sdf_circle =
 function render(paths, canvas) {
   // For each point on the canvas
   const ctx = canvas.getContext("2d");
+
+  /** @type {Point3D} */
+  const background = [255, 255, 255]
+
   const { width, height } = canvas;
-  const img = ctx.createImageData(width, height)
+  const img = ctx.createImageData(width, height);
   const data = img.data; // flat array [r,g,b,a,...]
 
   // iterate over each pixel
@@ -80,7 +122,8 @@ function render(paths, canvas) {
 
     /** @type {SDF} */
     const rootSDF = {
-      points: [[x, y]],
+      points2: [[x, y]],
+      points3: [],
       floats: [],
       ints: [],
       ops: [],
@@ -89,13 +132,19 @@ function render(paths, canvas) {
     paths(rootSDF);
     op(rootSDF);
 
-    const distance = rootSDF.floats[0]
-
-    const gray = distance < 0 ? 0 : 255-(distance * 10 % 255);
-    data[i] = gray;
-    data[i + 1] = gray;
-    data[i + 2] = gray;
-    data[i + 3] = 255;
+    if (rootSDF.points3.length > 0) {
+      const color = rootSDF.points3.pop()
+      data[i] = color[0];
+      data[i + 1] = color[1];
+      data[i + 2] = color[2];
+      data[i + 3] = 255;
+    }
+    else {
+      data[i] = background[0];
+      data[i + 1] = background[1];
+      data[i + 2] = background[2];
+      data[i + 3] = 255;
+    }
   }
 
   ctx.putImageData(img, 0, 0);
@@ -105,23 +154,52 @@ function main() {
   const canvas = document.getElementsByTagName("canvas")[0];
   canvas.width = 500;
   canvas.height = 500;
-  
-  frame(performance.now())
+
+  animate(canvas);
 }
 
-/** @param {DOMHighResTimeStamp} start */
-function frame(start) {
-  /** @type (sdf: SDF) => void */
-  const paths = (sdf) => {
-    sdf_circle([canvas.width / 2, canvas.height / 2], canvas.height / 3)(sdf);
-  };
-  render(paths, canvas);
+/** @param {HTMLCanvasElement} canvas */
+function animate(canvas) {
+  const ctx = canvas.getContext("2d");
+  /** @param {DOMHighResTimeStamp} start */
+  function callback(start) {
+    /** @type (sdf: SDF) => void */
+    const paths = (sdf) => {
+      sdf_circle2([canvas.width / 2, canvas.height / 2], canvas.height / 3)(sdf);
+      sdf_line2([255, 0, 0], 5)(sdf);
+    };
+    render(paths, canvas);
 
-  const finish = performance.now()
+    ctx.textAlign = "right";
+    ctx.fillStyle = "white";
+    const finish = performance.now();
+    const fps = 1000 / (finish - start);
 
-  console.log("took", (finish - start).toFixed(2))
+    ctx.fillText(
+      `${fps.toFixed(1)} fps`,
+      canvas.width - 10,
+      canvas.height - 10
+    );
 
-  requestAnimationFrame(frame)
+    requestAnimationFrame(callback);
+  }
+
+  callback(performance.now());
+}
+
+let times = []; // timestamps of frames
+
+function updateFps() {
+  const now = performance.now();
+  times.push(now);
+
+  // keep only the last second
+  while (times.length > 0 && times[0] <= now - 1000) {
+    times.shift();
+  }
+
+  const fps = times.length; // frames in the last 1 s
+  return fps;
 }
 
 main();
