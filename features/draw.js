@@ -106,7 +106,11 @@ function main() {
   canvas.width = 500;
   canvas.height = 500;
   
-  const start = performance.now()
+  frame(performance.now())
+}
+
+/** @param {DOMHighResTimeStamp} start */
+function frame(start) {
   /** @type (sdf: SDF) => void */
   const paths = (sdf) => {
     sdf_circle([canvas.width / 2, canvas.height / 2], canvas.height / 3)(sdf);
@@ -116,6 +120,8 @@ function main() {
   const finish = performance.now()
 
   console.log("took", (finish - start).toFixed(2))
+
+  requestAnimationFrame(frame)
 }
 
 main();
