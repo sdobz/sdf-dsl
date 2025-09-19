@@ -2,12 +2,14 @@
 // Compiles to shader?
 
 /**
- * @typedef {Object} SDF
+ * @typedef {Object} Stack
  * @prop {Point3D[]} points3
  * @prop {Point2D[]} points2
  * @prop {number[]} floats
  * @prop {number[]} ints
  * @prop {number[]} ops
+ * @prop {number} walk
+ * @prop {number} skip
  */
 
 /**
@@ -19,9 +21,10 @@ const OP_POINT2_LENGTH = 1;
 const OP_FLOAT_SUBTRACT = 2;
 const OP_FLOAT_ABS = 3;
 const OP_POINT3_DROP = 4;
-const OP_FLOAT_JMP = 5;
+const OP_FLOAT_BRANCH = 5;
+const OP_FLOAT_SWAP = 6;
 
-/** @type {{[opId in number]: (sdf: SDF) => void}} */
+/** @type {{[opId in number]: (stack: Stack) => void}} */
 const ops = {
   [OP_POINT2_SUBTRACT]: ({ points2 }) => {
     const a = points2.pop();
@@ -42,43 +45,57 @@ const ops = {
     floats.push(result);
   },
   [OP_FLOAT_ABS]: ({ floats }) => {
-    const a = floats.pop()
-    const result = Math.abs(a)
-    floats.push(result)
+    const a = floats.pop();
+    const result = Math.abs(a);
+    floats.push(result);
   },
-  [OP_POINT3_DROP]: ({points3}) => {
-    points3.pop()
+  [OP_FLOAT_SWAP]: ({ floats }) => {
+    const a = floats.pop();
+    const b = floats.pop();
+    floats.push(a, b);
   },
-  [OP_FLOAT_JMP]: ({ints, floats, ops}) => {
-    const a = ints.pop()
-    const b = ints.pop()
+  [OP_POINT3_DROP]: ({ points3 }) => {
+    points3.pop();
+  },
+  [OP_FLOAT_BRANCH]: (stack) => {
+    const { ints, floats } = stack;
+    const a = ints.pop();
+    const b = ints.pop();
 
-    const t = floats.pop()
-    
-    
+    const t = floats.pop();
+
     if (t > 0) {
-      ops.splice(a, b)
+      stack.walk = a;
+      stack.skip = b;
+    } else {
+      stack.skip = a;
+      stack.walk = 0;
     }
-    else {
-      ops.splice(0, a)
-    }
-  }
+  },
 };
 
 /**
- * Apply all operations in a sdf
- * @param {SDF} sdf
+ * Apply all operations in a stack
+ * @param {Stack} stack
  */
-function op(sdf) {
-  while (sdf.ops.length > 0) {
-    const nextOp = sdf.ops.pop();
-    ops[nextOp](sdf);
+function op(stack) {
+  while (stack.ops.length > 0) {
+    const nextOp = stack.ops.pop();
+
+    if (stack.skip > 0 && stack.walk == 0) {
+      stack.skip -= 1;
+      return;
+    }
+    ops[nextOp](stack);
+    if (stack.walk > 0) {
+      stack.walk -= 1;
+    }
   }
 }
 
 // param: vec2 p, float r
 // type: (points: [center, ...], floats: [radius, ...]) => (points: [...], floats: [sdf, ...])
-/** @type {(center: Point2D, radius: number) => (sdf: SDF) => void} */
+/** @type {(center: Point2D, radius: number) => (sdf: Stack) => void} */
 const sdf_circle2 =
   (center, radius) =>
   ({ points2, floats, ops }) => {
@@ -87,20 +104,20 @@ const sdf_circle2 =
     ops.push(OP_FLOAT_SUBTRACT, OP_POINT2_LENGTH, OP_POINT2_SUBTRACT);
   };
 
-/** @type {(color: Point3D, width: number) => (sdf: SDF) => void} */
+/** @type {(color: Point3D, width: number) => (sdf: Stack) => void} */
 const sdf_line2 =
   (color, width) =>
-  ({floats, ints, ops, points3}) => {
+  ({ floats, ints, ops, points3 }) => {
     // assume: "distance"
-    floats.push(width)
-    ints.push(0, 1)
-    points3.push(color)
-    ops.push(OP_POINT3_DROP, OP_FLOAT_JMP, OP_FLOAT_SUBTRACT, OP_FLOAT_ABS)
-  }
+    floats.push(width);
+    ints.push(0, 1);
+    points3.push(color);
+    ops.push(OP_POINT3_DROP, OP_FLOAT_BRANCH, OP_FLOAT_SUBTRACT, OP_FLOAT_ABS);
+  };
 
 /**
  * Plots a 2d SDF to a canvas
- * @param {(sdf: SDF) => void} paths
+ * @param {(sdf: Stack) => void} paths
  * @param {HTMLCanvasElement} canvas
  */
 function render(paths, canvas) {
@@ -108,7 +125,7 @@ function render(paths, canvas) {
   const ctx = canvas.getContext("2d");
 
   /** @type {Point3D} */
-  const background = [255, 255, 255]
+  const background = [0, 0, 0];
 
   const { width, height } = canvas;
   const img = ctx.createImageData(width, height);
@@ -120,26 +137,27 @@ function render(paths, canvas) {
     const x = pixelIndex % width; // column
     const y = Math.floor(pixelIndex / width); // row
 
-    /** @type {SDF} */
-    const rootSDF = {
+    /** @type {Stack} */
+    const root = {
       points2: [[x, y]],
       points3: [],
       floats: [],
       ints: [],
       ops: [],
+      skip: 0,
+      walk: 0,
     };
 
-    paths(rootSDF);
-    op(rootSDF);
+    paths(root);
+    op(root);
 
-    if (rootSDF.points3.length > 0) {
-      const color = rootSDF.points3.pop()
+    if (root.points3.length > 0) {
+      const color = root.points3.pop();
       data[i] = color[0];
       data[i + 1] = color[1];
       data[i + 2] = color[2];
       data[i + 3] = 255;
-    }
-    else {
+    } else {
       data[i] = background[0];
       data[i + 1] = background[1];
       data[i + 2] = background[2];
@@ -163,10 +181,13 @@ function animate(canvas) {
   const ctx = canvas.getContext("2d");
   /** @param {DOMHighResTimeStamp} start */
   function callback(start) {
-    /** @type (sdf: SDF) => void */
+    /** @type (sdf: Stack) => void */
     const paths = (sdf) => {
-      sdf_circle2([canvas.width / 2, canvas.height / 2], canvas.height / 3)(sdf);
-      sdf_line2([255, 0, 0], 5)(sdf);
+      sdf_line2([100, 100, 0], 5)(sdf);
+      sdf_circle2(
+        [canvas.width / 2, canvas.height / 2],
+        canvas.height / 3
+      )(sdf);
     };
     render(paths, canvas);
 
