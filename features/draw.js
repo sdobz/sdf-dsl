@@ -183,7 +183,7 @@ function animate(canvas) {
   function callback(start) {
     /** @type (sdf: Stack) => void */
     const paths = (sdf) => {
-      sdf_line2([100, 100, 0], 5)(sdf);
+      sdf_line2([245, 132, 66], 9)(sdf);
       sdf_circle2(
         [canvas.width / 2, canvas.height / 2],
         canvas.height / 3
