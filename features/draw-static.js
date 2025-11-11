@@ -1,6 +1,15 @@
-// Goal: VM example
+/*
+
+
+
+
+*/
 
 /**
+ * A stack is the accumulation of variable declarations required for operations
+ * "Program stack"
+ * 
+ * 
  * @typedef {Object} Stack
  * @prop {Point3D[]} points3
  * @prop {Point2D[]} points2
@@ -10,6 +19,32 @@
  * @prop {number} walk
  * @prop {number} skip
  */
+
+/**
+ * An operation is a function over program state
+ * 
+ * representation
+ * of a named code snippet
+ * run in a predictable context
+ * 
+ * @typedef {Object} Op
+ * @prop {} param0 
+ * @returns 
+ */
+
+function op({}) {
+  return {
+
+  }
+}
+
+/*
+const point2Subtract = op((state) => {
+  const a = state.points2[state.points2i++]
+  const b = state.points2[state.points2i++]
+})
+*/
+
 
 /**
  * @typedef {[number, number]} Point2D
