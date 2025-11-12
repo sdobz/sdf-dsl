@@ -1,4 +1,5 @@
-import {Token} from './token'
+import { Scanner } from "./scanner.js";
+import { Token } from "./token.js";
 
 export class Lox {
   constructor() {
@@ -8,13 +9,19 @@ export class Lox {
   run(src) {
     this.hadError = false;
     const tokens = this.scan(src);
+
+    console.log(tokens);
   }
 
   /**
    * @param {string} src
    * @returns {Token[]}
    */
-  scan(src) {}
+  scan(src) {
+    const scanner = new Scanner(src, this);
+    scanner.scanTokens();
+    return scanner.tokens;
+  }
 
   /**
    * @param {number} line

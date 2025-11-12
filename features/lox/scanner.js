@@ -39,9 +39,7 @@ import {
   TRUE,
   VAR,
   WHILE,
-} from "./token";
-
-/** @import {Lox} from './lox' */
+} from "./token.js";
 
 const RESERVED = {
   and: AND,
@@ -62,14 +60,16 @@ const RESERVED = {
   while: WHILE,
 };
 
+/** @import {ErrorReporter} from './types' */
+
 export class Scanner {
   /**
    * @param {string} src
-   * @param {Lox} lox
+   * @param {ErrorReporter} err
    */
-  constructor(src, lox) {
+  constructor(src, err) {
     this.src = src;
-    this.lox = lox;
+    this.err = err;
     this.start = 0;
     this.current = 0;
     this.line = 1;
@@ -162,7 +162,7 @@ export class Scanner {
         } else if (this.isAlpha(c)) {
           this.identifier();
         } else {
-          this.lox.error(this.line, "Unexpected character.");
+          this.err.error(this.line, "Unexpected character.");
         }
         break;
     }
@@ -198,7 +198,7 @@ export class Scanner {
     }
 
     if (this.isAtEnd()) {
-      this.lox.error(this.line, "Unterminated string.");
+      this.err.error(this.line, "Unterminated string.");
       return;
     }
 

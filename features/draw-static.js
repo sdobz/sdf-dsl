@@ -34,7 +34,7 @@
  * @returns 
  */
 
-function op({}) {
+function op(def) {
   return {
 
   }
