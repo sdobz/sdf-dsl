@@ -1,6 +1,6 @@
 import {Token} from './token'
 
-class Lox {
+export class Lox {
   constructor() {
     this.hadError = false;
   }
