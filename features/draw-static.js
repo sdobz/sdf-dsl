@@ -5,6 +5,8 @@
 
 */
 
+/** @import { Operation } from './expression' */
+
 /**
  * A stack is the accumulation of variable declarations required for operations
  * "Program stack"

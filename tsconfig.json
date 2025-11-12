@@ -1,6 +1,6 @@
 {
-    "include": ["**/*.d.ts", "**/*.js"],
-    "exclude": ["staubli/html/js/vendor"],
+    "include": ["**/*.js"],
+    "exclude": ["features/vendor"],
     "compilerOptions": {
         "lib": ["ES2023", "DOM", "dom.iterable"],
         "checkJs": true,
