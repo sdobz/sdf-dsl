@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="./generate-ast.js"></script>
+  </head>
+  <body>
+    <button onclick="copy()">Copy</button>
+    <pre></pre>
+    <script>
+      const ast = generateAst();
+      document.querySelector("pre").innerHTML = ast;
+      function copy() {
+        navigator.clipboard.writeText(ast);
+      }
+    </script>
+  </body>
+</html>

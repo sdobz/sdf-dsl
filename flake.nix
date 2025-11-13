@@ -26,6 +26,7 @@
             # pkgs.pkg-config
             # pkgs.cmake
             pkgs.busybox
+            pkgs.quickjs
           ];
 
           shellHook = ''
