@@ -7,6 +7,7 @@
         "baseUrl": ".",
         "target": "es2023",
         "outDir": "dist",
+        "strictNullChecks": true,
         "paths": {
             "three": ["js/vendor/three/three.js"],
             "three/*": ["js/vendor/three/*"],

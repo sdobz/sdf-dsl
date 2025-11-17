@@ -6,4 +6,5 @@ export interface Scanner {
 
 export interface ErrorReporter {
   error(line: number, err: string);
+  tokenError(token: Token, message: string);
 }

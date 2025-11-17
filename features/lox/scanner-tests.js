@@ -14,7 +14,7 @@ import {
   STRING,
 } from "./token.js";
 
-import {runTests, TestErrorReporter} from "./test.js"
+import { runTests, TestErrorReporter } from "./test.js";
 
 const allTests = [
   testScannerNothing,
@@ -58,7 +58,6 @@ function testScannerLiteralTypes() {
   );
 }
 
-
 function expectTokens(src, expected, literals) {
   const reporter = new TestErrorReporter();
 
@@ -78,7 +77,7 @@ function expectTokens(src, expected, literals) {
       console.error("too many tokens");
       return false;
     }
-    if (expect !== undefined && got === undefined) {
+    if (got === undefined) {
       console.error("not enough tokens");
       return false;
     }

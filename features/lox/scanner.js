@@ -237,7 +237,7 @@ export class Scanner {
   /**
    *
    * @param {number} type
-   * @param {Object} literal
+   * @param {string | number} [literal]
    */
   addToken(type, literal) {
     const text = this.src.substring(this.start, this.current);

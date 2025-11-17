@@ -41,16 +41,15 @@ export const LEFT_PAREN = 0,
   WHILE = 37,
   EOF = 38;
 
+/** @typedef {number} TokenType */
 
 export class Token {
-  //Token(TokenType type, String lexeme, Object literal, int line) {
-
   /**
-   * 
-   * @param {number} type 
-   * @param {string} lexeme 
-   * @param {Object} literal 
-   * @param {number} line 
+   *
+   * @param {TokenType} type
+   * @param {string} lexeme
+   * @param {Object} literal
+   * @param {number} line
    */
   constructor(type, lexeme, literal, line) {
     this.type = type;

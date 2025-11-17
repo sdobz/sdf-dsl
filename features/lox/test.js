@@ -1,3 +1,7 @@
+/** @typedef {import("./types").ErrorReporter} ErrorReporter */
+/** @typedef {import("./token").Token} Token */
+
+/** @implements ErrorReporter */
 export class TestErrorReporter {
   constructor() {
     this.errors = [];
@@ -10,6 +14,12 @@ export class TestErrorReporter {
   error(line, msg) {
     this.errors.push([line, "", msg]);
   }
+
+  /**
+   * @param {Token} token
+   * @param {string} msg
+   */
+  tokenError(token, msg) {}
 }
 
 export function runTests(tests) {

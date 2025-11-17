@@ -1,5 +1,7 @@
+import { AstPrinter } from "./ast-printer.js";
+import { Parser } from "./parser.js";
 import { Scanner } from "./scanner.js";
-import { Token } from "./token.js";
+import { EOF, Token } from "./token.js";
 
 export class Lox {
   constructor() {
@@ -8,19 +10,15 @@ export class Lox {
   /** @param {string} src  */
   run(src) {
     this.hadError = false;
-    const tokens = this.scan(src);
-
-    console.log(tokens);
-  }
-
-  /**
-   * @param {string} src
-   * @returns {Token[]}
-   */
-  scan(src) {
     const scanner = new Scanner(src, this);
-    scanner.scanTokens();
-    return scanner.tokens;
+    const tokens = scanner.scanTokens();
+
+    const parser = new Parser(tokens, this);
+    const ast = parser.parse();
+
+    if (this.hadError || !ast) return;
+
+    console.log(new AstPrinter().print(ast));
   }
 
   /**
@@ -39,5 +37,18 @@ export class Lox {
   report(line, where, msg) {
     console.error(`[line ${line}] Error${where}: ${msg}`);
     this.hadError = true;
+  }
+
+  /**
+   *
+   * @param {Token} token
+   * @param {string} message
+   */
+  tokenError(token, message) {
+    if (token.type == EOF) {
+      this.report(token.line, " at end", message);
+    } else {
+      this.report(token.line, " at '" + token.lexeme + "'", message);
+    }
   }
 }
