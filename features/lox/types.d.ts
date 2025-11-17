@@ -1,3 +1,4 @@
+import { RuntimeError } from "./interpreter";
 import { Token } from "./token";
 
 export interface Scanner {
@@ -7,4 +8,7 @@ export interface Scanner {
 export interface ErrorReporter {
   error(line: number, err: string);
   tokenError(token: Token, message: string);
+  runtimeError(error: RuntimeError);
 }
+
+export type Value = string | number | boolean | null;

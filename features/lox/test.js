@@ -20,13 +20,25 @@ export class TestErrorReporter {
    * @param {string} msg
    */
   tokenError(token, msg) {}
+
+  runtimeError(error) {}
 }
 
+/**
+ * @param {(() => boolean)[]} tests
+ */
 export function runTests(tests) {
   let ok = true;
   tests.forEach((test) => {
-    if (!test()) {
-      console.error(`${test.name} failed`);
+    try {
+      const result = test();
+
+      if (!result) {
+        console.log(`${test.name} failed`);
+        ok = false;
+      }
+    } catch (err) {
+      console.error(`❌ Test ${test.name} threw:`, err);
       ok = false;
     }
   });

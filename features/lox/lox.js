@@ -1,4 +1,5 @@
 import { AstPrinter } from "./ast-printer.js";
+import { Interpreter, RuntimeError } from "./interpreter.js";
 import { Parser } from "./parser.js";
 import { Scanner } from "./scanner.js";
 import { EOF, Token } from "./token.js";
@@ -6,7 +7,9 @@ import { EOF, Token } from "./token.js";
 export class Lox {
   constructor() {
     this.hadError = false;
+    this.hadRuntimeError = false;
   }
+
   /** @param {string} src  */
   run(src) {
     this.hadError = false;
@@ -18,7 +21,9 @@ export class Lox {
 
     if (this.hadError || !ast) return;
 
-    console.log(new AstPrinter().print(ast));
+    const interpreter = new Interpreter(this);
+
+    console.log(interpreter.interpret(ast));
   }
 
   /**
@@ -50,5 +55,14 @@ export class Lox {
     } else {
       this.report(token.line, " at '" + token.lexeme + "'", message);
     }
+  }
+
+  /**
+   *
+   * @param {RuntimeError} error
+   */
+  runtimeError(error) {
+    console.error(error.message + "\n[line " + error.token.line + "]");
+    this.hadRuntimeError = true;
   }
 }
