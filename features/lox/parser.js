@@ -2,7 +2,8 @@
 /** @typedef {import("./token").TokenType} TokenType */
 /** @typedef {import("./types").ErrorReporter} ErrorReporter */
 
-import { Expr, Binary, Grouping, Literal, Unary } from "./ast.js";
+import { Expr, Binary, Grouping, Literal, Unary } from "./expr.js";
+import { Expression, Print, Stmt } from "./stmt.js";
 import {
   BANG,
   BANG_EQUAL,
@@ -48,14 +49,45 @@ export class Parser {
   }
 
   /**
-   * @returns {Expr | null}
+   * @returns {Stmt[] | null}
    */
   parse() {
-    try {
-      return this.expression();
-    } catch (error) {
-      return null;
+    const statements = [];
+    while (!this.isAtEnd()) {
+      statements.push(this.statement());
     }
+
+    return statements;
+  }
+
+  /**
+   * @returns {Stmt}
+   */
+  statement() {
+    if (this.match(PRINT)) return this.printStatement();
+
+    return this.expressionStatement();
+  }
+
+  /**
+   * @returns {Stmt}
+   */
+  printStatement() {
+    const value = this.expression();
+
+    this.consume(SEMICOLON, "Expect ';' after value.");
+
+    return new Print(value);
+  }
+
+  /**
+   * @returns {Stmt}
+   */
+  expressionStatement() {
+    const expr = this.expression();
+    this.consume(SEMICOLON, "Expect ';' after value.");
+
+    return new Expression(expr);
   }
 
   /**

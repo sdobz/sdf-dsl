@@ -1,4 +1,6 @@
-/** @typedef {import("./ast.js").Expr} Expr */
+/** @typedef {import("./stmt.js").Stmt} Stmt */
+/** @typedef {import("./expr.js").Expr} Expr */
+/** @typedef {import("./expr.js").Visitor} Visitor */
 /** @typedef {import("./types").ErrorReporter} ErrorReporter */
 /** @typedef {import("./types").Value} Value */
 
@@ -33,14 +35,11 @@ export class Interpreter {
   }
 
   /**
-   * @param {Expr} expr
+   * @param {Stmt[]} stmts
    */
-  interpret(expr) {
+  interpret(stmts) {
     try {
-      const value = this.evaluate(expr);
-      console.log(this.stringify(value));
-
-      return value;
+      stmts.forEach(this.execute);
     } catch (e) {
       this.reporter.runtimeError(e);
     }
@@ -52,6 +51,24 @@ export class Interpreter {
    */
   evaluate(expr) {
     return expr.accept(this);
+  }
+
+  /**
+   *
+   * @param {Stmt} stmt
+   */
+  execute(stmt) {
+    stmt.accept(this);
+  }
+
+  visitExpressionStmt(stmt) {
+    this.evaluate(stmt.expression);
+  }
+
+  visitPrintStmt(stmt) {
+    const value = this.evaluate(stmt.expression);
+
+    console.log(this.stringify(value));
   }
 
   visitLiteralExpr(expr) {

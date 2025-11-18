@@ -1,4 +1,3 @@
-import { AstPrinter } from "./ast-printer.js";
 import { Interpreter, RuntimeError } from "./interpreter.js";
 import { Parser } from "./parser.js";
 import { Scanner } from "./scanner.js";
@@ -17,13 +16,13 @@ export class Lox {
     const tokens = scanner.scanTokens();
 
     const parser = new Parser(tokens, this);
-    const ast = parser.parse();
+    const statements = parser.parse();
 
-    if (this.hadError || !ast) return;
+    if (this.hadError || !statements) return;
 
     const interpreter = new Interpreter(this);
 
-    console.log(interpreter.interpret(ast));
+    console.log(interpreter.interpret(statements));
   }
 
   /**

@@ -1,5 +1,5 @@
 import { AstPrinter } from "./ast-printer.js";
-import { Binary, Unary, Literal, Grouping } from "./ast.js";
+import { Binary, Unary, Literal, Grouping } from "./expr.js";
 import { runTests } from "./test.js";
 import { Token, MINUS, STAR } from "./token.js";
 
@@ -15,6 +15,6 @@ function testPrintsExpression() {
   );
 
   const printedAst = new AstPrinter().print(expression);
-  console.log(printedAst)
+  console.log(printedAst);
   return printedAst === "(* (- 123) (group 45.67))";
 }

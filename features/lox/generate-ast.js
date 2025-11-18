@@ -1,9 +1,16 @@
-function generateAst() {
+function generateExpr() {
   return defineAst("Expr", [
     "Binary   : left, operator,  right",
     "Grouping : expression",
     "Literal  : value",
     "Unary    : operator, right",
+  ]);
+}
+
+function generateStmt() {
+  return defineAst("Stmt", [
+    "Expression : expression",
+    "Print      : expression",
   ]);
 }
 
