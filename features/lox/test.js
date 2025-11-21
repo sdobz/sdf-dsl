@@ -1,4 +1,5 @@
 /** @typedef {import("./types").ErrorReporter} ErrorReporter */
+/** @typedef {import("./types").IO} IO */
 /** @typedef {import("./token").Token} Token */
 
 /** @implements ErrorReporter */
@@ -38,12 +39,58 @@ export function runTests(tests) {
         ok = false;
       }
     } catch (err) {
-      console.error(`❌ Test ${test.name} threw:`, err);
+      console.log(`${test.name} threw:`, err);
+      console.trace();
       ok = false;
     }
   });
 
   if (ok) {
     console.log("Tests passing");
+  }
+}
+
+export class TestIO {
+  constructor() {
+    this.messages = [];
+  }
+
+  /**
+   *
+   * @param {string} str
+   */
+  print(str) {
+    this.messages.push(str);
+  }
+
+  /**
+   *
+   * @param {string[]} messages
+   */
+  expect(messages) {
+    while (true) {
+      const got = this.messages.pop();
+      const expect = messages.pop();
+
+      if (got === undefined && expect === undefined) {
+        break;
+      }
+
+      if (got !== undefined && expect === undefined) {
+        console.log("too many messages");
+        return false;
+      }
+      if (got === undefined) {
+        console.log("not enough messages");
+        return false;
+      }
+
+      if (got !== expect) {
+        console.log("mismatched message, expect:", expect, "got:", got);
+        return false;
+      }
+    }
+
+    return true;
   }
 }

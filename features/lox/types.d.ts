@@ -11,4 +11,8 @@ export interface ErrorReporter {
   runtimeError(error: RuntimeError);
 }
 
+export interface IO {
+  print(str: string);
+}
+
 export type Value = string | number | boolean | null;

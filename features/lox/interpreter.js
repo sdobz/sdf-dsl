@@ -2,6 +2,7 @@
 /** @typedef {import("./expr.js").Expr} Expr */
 /** @typedef {import("./expr.js").Visitor} Visitor */
 /** @typedef {import("./types").ErrorReporter} ErrorReporter */
+/** @typedef {import("./types").IO} IO */
 /** @typedef {import("./types").Value} Value */
 
 import {
@@ -29,9 +30,11 @@ export class Interpreter {
   /**
    *
    * @param {ErrorReporter} reporter
+   * @param {IO} io
    */
-  constructor(reporter) {
+  constructor(reporter, io) {
     this.reporter = reporter;
+    this.io = io;
   }
 
   /**
@@ -39,7 +42,8 @@ export class Interpreter {
    */
   interpret(stmts) {
     try {
-      stmts.forEach(this.execute);
+      const boundExecute = this.execute.bind(this);
+      stmts.forEach(boundExecute);
     } catch (e) {
       this.reporter.runtimeError(e);
     }
@@ -68,7 +72,7 @@ export class Interpreter {
   visitPrintStmt(stmt) {
     const value = this.evaluate(stmt.expression);
 
-    console.log(this.stringify(value));
+    this.io.print(this.stringify(value));
   }
 
   visitLiteralExpr(expr) {
@@ -99,29 +103,36 @@ export class Interpreter {
 
     switch (expr.operator.type) {
       case GREATER:
-        this.checkNumberOperands(expr.operator, left, right);
+        this.checkNumberOperand(expr.operator, left);
+        this.checkNumberOperand(expr.operator, right);
         return left > right;
       case GREATER_EQUAL:
-        this.checkNumberOperands(expr.operator, left, right);
+        this.checkNumberOperand(expr.operator, left);
+        this.checkNumberOperand(expr.operator, right);
         return left >= right;
       case LESS:
-        this.checkNumberOperands(expr.operator, left, right);
+        this.checkNumberOperand(expr.operator, left);
+        this.checkNumberOperand(expr.operator, right);
         return left < right;
       case LESS_EQUAL:
-        this.checkNumberOperands(expr.operator, left, right);
+        this.checkNumberOperand(expr.operator, left);
+        this.checkNumberOperand(expr.operator, right);
         return left <= right;
       case BANG_EQUAL:
         return !this.isEqual(left, right);
       case EQUAL_EQUAL:
         return this.isEqual(left, right);
       case MINUS:
-        this.checkNumberOperands(expr.operator, left, right);
+        this.checkNumberOperand(expr.operator, left);
+        this.checkNumberOperand(expr.operator, right);
         return left - right;
       case SLASH:
-        this.checkNumberOperands(expr.operator, left, right);
+        this.checkNumberOperand(expr.operator, left);
+        this.checkNumberOperand(expr.operator, right);
         return left / right;
       case STAR:
-        this.checkNumberOperands(expr.operator, left, right);
+        this.checkNumberOperand(expr.operator, left);
+        this.checkNumberOperand(expr.operator, right);
         return left * right;
       case PLUS:
         return left + right;
@@ -130,16 +141,15 @@ export class Interpreter {
     return null;
   }
 
+  /**
+   * @param {string} operator
+   * @param {Value} operand
+   * @returns {asserts operand is number}
+   */
   checkNumberOperand(operator, operand) {
     if (typeof operand === "number") return;
 
     throw new RuntimeError(operator, "Operand must be a number");
-  }
-
-  checkNumberOperands(operator, left, right) {
-    if (typeof left === "number" && typeof right === "number") return;
-
-    throw new RuntimeError(operator, "Operands must be numbers");
   }
 
   isTruthy(object) {

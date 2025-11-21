@@ -20,9 +20,16 @@ export class Lox {
 
     if (this.hadError || !statements) return;
 
-    const interpreter = new Interpreter(this);
+    const interpreter = new Interpreter(this, this);
 
     console.log(interpreter.interpret(statements));
+  }
+
+  /**
+   * @param {string} str
+   */
+  print(str) {
+    console.log(str);
   }
 
   /**
