@@ -2,7 +2,15 @@
 /** @typedef {import("./token").TokenType} TokenType */
 /** @typedef {import("./types").ErrorReporter} ErrorReporter */
 
-import { Expr, Binary, Grouping, Literal, Unary, Variable } from "./expr.js";
+import {
+  Expr,
+  Binary,
+  Grouping,
+  Literal,
+  Unary,
+  Variable,
+  Assign,
+} from "./expr.js";
 import { Expression, Print, Stmt, Vari } from "./stmt.js";
 import {
   BANG,
@@ -119,11 +127,29 @@ export class Parser {
     return new Expression(expr);
   }
 
+  assignment() {
+    const expr = this.equality();
+
+    if (this.match(EQUAL)) {
+      const equals = this.previous();
+      const value = this.assignment();
+
+      if (expr instanceof Variable) {
+        const name = expr.name;
+        return new Assign(name, value);
+      }
+
+      this.error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
+  }
+
   /**
    * @returns {Expr}
    */
   expression() {
-    return this.equality();
+    return this.assignment();
   }
 
   /**

@@ -2,6 +2,7 @@
 
 /**
  * @typedef {object} Visitor
+ * @property {(assign: Assign) => any} visitAssignExpr
  * @property {(binary: Binary) => any} visitBinaryExpr
  * @property {(grouping: Grouping) => any} visitGroupingExpr
  * @property {(literal: Literal) => any} visitLiteralExpr
@@ -17,6 +18,18 @@ export class Expr {
   accept(visitor) {}
 }
 
+
+export class Assign extends Expr {
+  constructor(name, value) {
+    super();
+    this.name = name;
+    this.value = value;
+  }
+
+  accept(visitor) {
+    return visitor.visitAssignExpr(this);
+  }
+}
 
 export class Binary extends Expr {
   constructor(left, operator, right) {

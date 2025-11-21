@@ -1,4 +1,4 @@
-import { Expr, Literal, Variable } from "./expr.js";
+import { Assign, Expr, Literal, Variable } from "./expr.js";
 import { Print, Stmt, Vari } from "./stmt.js";
 import { Interpreter } from "./interpreter.js";
 import { runTests, TestErrorReporter, TestIO } from "./test.js";
@@ -32,16 +32,25 @@ function newIdentifierToken(name) {
 function testInterpreterManagesState() {
   const uninitializedToken = newIdentifierToken("uninitialized");
   const initializedToken = newIdentifierToken("initialized");
+  const mutatedToken = newIdentifierToken("mutated");
   const [io, err, env] = interpret([
     new Vari(uninitializedToken, null),
     new Vari(initializedToken, new Literal(5)),
+    new Vari(mutatedToken, new Literal(4)),
     new Print(new Variable(initializedToken)),
+    new Assign(mutatedToken, new Literal(6)),
   ]);
 
   const uninitialized = env.get(uninitializedToken);
   const initialized = env.get(initializedToken);
+  const mutated = env.get(mutatedToken);
 
-  return uninitialized === null && initialized === 5 && io.expect(["5"]);
+  return (
+    uninitialized === null &&
+    initialized === 5 &&
+    mutated === 6 &&
+    io.expect(["5"])
+  );
 }
 
 /**

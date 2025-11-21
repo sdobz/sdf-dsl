@@ -87,6 +87,12 @@ export class Interpreter {
     this.environment.define(stmt.name.lexeme, value);
   }
 
+  visitAssignExpr(expr) {
+    const value = this.evaluate(expr.value);
+    this.environment.assign(expr.name, value);
+    return value;
+  }
+
   visitLiteralExpr(expr) {
     return expr.value;
   }

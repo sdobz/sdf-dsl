@@ -1,5 +1,6 @@
 function generateExpr() {
   return defineAst("Expr", [
+    "Assign   : name, value",
     "Binary   : left, operator,  right",
     "Grouping : expression",
     "Literal  : value",
