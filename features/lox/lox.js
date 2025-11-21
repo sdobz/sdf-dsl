@@ -1,3 +1,4 @@
+import { Environment } from "./environment.js";
 import { Interpreter, RuntimeError } from "./interpreter.js";
 import { Parser } from "./parser.js";
 import { Scanner } from "./scanner.js";
@@ -7,6 +8,7 @@ export class Lox {
   constructor() {
     this.hadError = false;
     this.hadRuntimeError = false;
+    this.environment = new Environment();
   }
 
   /** @param {string} src  */
@@ -20,7 +22,7 @@ export class Lox {
 
     if (this.hadError || !statements) return;
 
-    const interpreter = new Interpreter(this, this);
+    const interpreter = new Interpreter(this, this, this.environment);
 
     console.log(interpreter.interpret(statements));
   }

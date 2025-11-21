@@ -4,6 +4,7 @@ function generateExpr() {
     "Grouping : expression",
     "Literal  : value",
     "Unary    : operator, right",
+    "Variable : name",
   ]);
 }
 
@@ -11,6 +12,7 @@ function generateStmt() {
   return defineAst("Stmt", [
     "Expression : expression",
     "Print      : expression",
+    "Vari       : name, initializer",
   ]);
 }
 

@@ -2,19 +2,21 @@
 /** @typedef {import("./token").TokenType} TokenType */
 /** @typedef {import("./types").ErrorReporter} ErrorReporter */
 
-import { Expr, Binary, Grouping, Literal, Unary } from "./expr.js";
-import { Expression, Print, Stmt } from "./stmt.js";
+import { Expr, Binary, Grouping, Literal, Unary, Variable } from "./expr.js";
+import { Expression, Print, Stmt, Vari } from "./stmt.js";
 import {
   BANG,
   BANG_EQUAL,
   CLASS,
   EOF,
+  EQUAL,
   EQUAL_EQUAL,
   FALSE,
   FOR,
   FUN,
   GREATER,
   GREATER_EQUAL,
+  IDENTIFIER,
   IF,
   LEFT_PAREN,
   LESS,
@@ -49,15 +51,29 @@ export class Parser {
   }
 
   /**
-   * @returns {Stmt[] | null}
+   * @returns {Stmt[]}
    */
   parse() {
     const statements = [];
     while (!this.isAtEnd()) {
-      statements.push(this.statement());
+      statements.push(this.declaration());
     }
 
-    return statements;
+    return statements.filter((s) => !!s);
+  }
+
+  /**
+   * @returns {Stmt | null}
+   */
+  declaration() {
+    try {
+      if (this.match(VAR)) return this.variDeclaration();
+
+      return this.statement();
+    } catch (e) {
+      this.synchronize();
+      return null;
+    }
   }
 
   /**
@@ -78,6 +94,19 @@ export class Parser {
     this.consume(SEMICOLON, "Expect ';' after value.");
 
     return new Print(value);
+  }
+
+  variDeclaration() {
+    const name = this.consume(IDENTIFIER, "Expect variable name.");
+
+    let initializer = null;
+    if (this.match(EQUAL)) {
+      initializer = this.expression();
+    }
+
+    this.consume(SEMICOLON, "Expect ';' after variable declaration.");
+
+    return new Vari(name, initializer);
   }
 
   /**
@@ -180,6 +209,10 @@ export class Parser {
 
     if (this.match(NUMBER, STRING)) {
       return new Literal(this.previous().literal);
+    }
+
+    if (this.match(IDENTIFIER)) {
+      return new Variable(this.previous());
     }
 
     if (this.match(LEFT_PAREN)) {

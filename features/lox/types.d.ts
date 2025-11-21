@@ -15,4 +15,9 @@ export interface IO {
   print(str: string);
 }
 
+export interface Environment {
+  get(name: Token);
+  define(name: string, value: Value);
+}
+
 export type Value = string | number | boolean | null;

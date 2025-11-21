@@ -40,7 +40,6 @@ export function runTests(tests) {
       }
     } catch (err) {
       console.log(`${test.name} threw:`, err);
-      console.trace();
       ok = false;
     }
   });

@@ -3,6 +3,7 @@
 /** @typedef {import("./expr.js").Visitor} Visitor */
 /** @typedef {import("./types").ErrorReporter} ErrorReporter */
 /** @typedef {import("./types").IO} IO */
+/** @typedef {import("./types").Environment} Environment */
 /** @typedef {import("./types").Value} Value */
 
 import {
@@ -31,10 +32,12 @@ export class Interpreter {
    *
    * @param {ErrorReporter} reporter
    * @param {IO} io
+   * @param {Environment} environment
    */
-  constructor(reporter, io) {
+  constructor(reporter, io, environment) {
     this.reporter = reporter;
     this.io = io;
+    this.environment = environment;
   }
 
   /**
@@ -75,6 +78,15 @@ export class Interpreter {
     this.io.print(this.stringify(value));
   }
 
+  visitVariStmt(stmt) {
+    let value = null;
+    if (stmt.initializer !== null) {
+      value = this.evaluate(stmt.initializer);
+    }
+
+    this.environment.define(stmt.name.lexeme, value);
+  }
+
   visitLiteralExpr(expr) {
     return expr.value;
   }
@@ -95,6 +107,10 @@ export class Interpreter {
     }
 
     return null;
+  }
+
+  visitVariableExpr(expr) {
+    return this.environment.get(expr.name);
   }
 
   visitBinaryExpr(expr) {

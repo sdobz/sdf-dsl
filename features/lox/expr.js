@@ -6,6 +6,7 @@
  * @property {(grouping: Grouping) => any} visitGroupingExpr
  * @property {(literal: Literal) => any} visitLiteralExpr
  * @property {(unary: Unary) => any} visitUnaryExpr
+ * @property {(variable: Variable) => any} visitVariableExpr
  */
 
 export class Expr {
@@ -61,6 +62,17 @@ export class Unary extends Expr {
 
   accept(visitor) {
     return visitor.visitUnaryExpr(this);
+  }
+}
+
+export class Variable extends Expr {
+  constructor(name) {
+    super();
+    this.name = name;
+  }
+
+  accept(visitor) {
+    return visitor.visitVariableExpr(this);
   }
 }
 

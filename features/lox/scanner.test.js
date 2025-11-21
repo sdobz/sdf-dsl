@@ -74,21 +74,21 @@ function expectTokens(src, expected, literals) {
     }
 
     if (got !== undefined && expect === undefined) {
-      console.error("too many tokens");
+      console.log("too many tokens");
       return false;
     }
     if (got === undefined) {
-      console.error("not enough tokens");
+      console.log("not enough tokens");
       return false;
     }
 
     if (got.type !== expect) {
-      console.error("Mismatched types");
+      console.log("Mismatched types");
       return false;
     }
 
     if (literal && got.literal !== literal) {
-      console.error("Mismatched literal");
+      console.log("Mismatched literal");
       return false;
     }
   }
