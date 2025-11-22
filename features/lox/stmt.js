@@ -2,6 +2,7 @@
 
 /**
  * @typedef {object} Visitor
+ * @property {(block: Block) => any} visitBlockStmt
  * @property {(expression: Expression) => any} visitExpressionStmt
  * @property {(print: Print) => any} visitPrintStmt
  * @property {(vari: Vari) => any} visitVariStmt
@@ -15,6 +16,17 @@ export class Stmt {
   accept(visitor) {}
 }
 
+
+export class Block extends Stmt {
+  constructor(statements) {
+    super();
+    this.statements = statements;
+  }
+
+  accept(visitor) {
+    return visitor.visitBlockStmt(this);
+  }
+}
 
 export class Expression extends Stmt {
   constructor(expression) {

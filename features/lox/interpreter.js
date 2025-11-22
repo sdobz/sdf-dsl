@@ -6,6 +6,7 @@
 /** @typedef {import("./types").Environment} Environment */
 /** @typedef {import("./types").Value} Value */
 
+import { Environment } from "./environment.js";
 import {
   BANG,
   BANG_EQUAL,
@@ -66,6 +67,23 @@ export class Interpreter {
    */
   execute(stmt) {
     stmt.accept(this);
+  }
+
+  visitBlockStmt(stmt) {
+    this.executeBlock(stmt.statements, new Environment(this.environment));
+  }
+
+  executeBlock(statements, environment) {
+    const previous = this.environment;
+    try {
+      this.environment = environment;
+
+      const boundExecute = this.execute.bind(this);
+
+      statements.forEach(boundExecute);
+    } finally {
+      this.environment = previous;
+    }
   }
 
   visitExpressionStmt(stmt) {

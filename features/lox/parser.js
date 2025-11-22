@@ -11,7 +11,7 @@ import {
   Variable,
   Assign,
 } from "./expr.js";
-import { Expression, Print, Stmt, Vari } from "./stmt.js";
+import { Block, Expression, Print, Stmt, Vari } from "./stmt.js";
 import {
   BANG,
   BANG_EQUAL,
@@ -26,6 +26,7 @@ import {
   GREATER_EQUAL,
   IDENTIFIER,
   IF,
+  LEFT_BRACE,
   LEFT_PAREN,
   LESS,
   LESS_EQUAL,
@@ -35,6 +36,7 @@ import {
   PLUS,
   PRINT,
   RETURN,
+  RIGHT_BRACE,
   RIGHT_PAREN,
   SEMICOLON,
   SLASH,
@@ -89,6 +91,7 @@ export class Parser {
    */
   statement() {
     if (this.match(PRINT)) return this.printStatement();
+    if (this.match(LEFT_BRACE)) return new Block(this.block());
 
     return this.expressionStatement();
   }
@@ -125,6 +128,17 @@ export class Parser {
     this.consume(SEMICOLON, "Expect ';' after value.");
 
     return new Expression(expr);
+  }
+
+  block() {
+    const statements = [];
+
+    while (!this.check(RIGHT_BRACE) && !this.isAtEnd()) {
+      statements.push(this.declaration());
+    }
+
+    this.consume(RIGHT_BRACE, "Expect '}' after block.");
+    return statements;
   }
 
   assignment() {

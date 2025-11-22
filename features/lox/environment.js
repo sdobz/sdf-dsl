@@ -4,9 +4,15 @@
 import { RuntimeError } from "./interpreter.js";
 
 export class Environment {
-  constructor() {
+  /**
+   *
+   * @param {Environment} [enclosing]
+   */
+  constructor(enclosing) {
     /** @type {{[k: string]: Value}} */
     this.values = {};
+    /** @type {Environment | null} */
+    this.enclosing = enclosing || null;
   }
 
   /**
@@ -25,6 +31,8 @@ export class Environment {
       return this.values[name.lexeme];
     }
 
+    if (this.enclosing !== null) return this.enclosing.get(name);
+
     throw new RuntimeError(name, `Undefined variable ${name.lexeme}`);
   }
 
@@ -37,6 +45,11 @@ export class Environment {
   assign(name, value) {
     if (name.lexeme in this.values) {
       this.values[name.lexeme] = value;
+      return;
+    }
+
+    if (this.enclosing !== null) {
+      this.enclosing.assign(name, value);
       return;
     }
 

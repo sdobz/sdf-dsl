@@ -11,6 +11,7 @@ function generateExpr() {
 
 function generateStmt() {
   return defineAst("Stmt", [
+    "Block      : statements",
     "Expression : expression",
     "Print      : expression",
     "Vari       : name, initializer",
