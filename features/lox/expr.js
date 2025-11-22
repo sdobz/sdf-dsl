@@ -6,6 +6,7 @@
  * @property {(binary: Binary) => any} visitBinaryExpr
  * @property {(grouping: Grouping) => any} visitGroupingExpr
  * @property {(literal: Literal) => any} visitLiteralExpr
+ * @property {(logical: Logical) => any} visitLogicalExpr
  * @property {(unary: Unary) => any} visitUnaryExpr
  * @property {(variable: Variable) => any} visitVariableExpr
  */
@@ -63,6 +64,19 @@ export class Literal extends Expr {
 
   accept(visitor) {
     return visitor.visitLiteralExpr(this);
+  }
+}
+
+export class Logical extends Expr {
+  constructor(left, operator, right) {
+    super();
+    this.left = left;
+    this.operator = operator;
+    this.right = right;
+  }
+
+  accept(visitor) {
+    return visitor.visitLogicalExpr(this);
   }
 }
 

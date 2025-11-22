@@ -1,17 +1,25 @@
-import { Assign, Expr, Literal, Variable } from "./expr.js";
-import { Block, Print, Stmt, Vari } from "./stmt.js";
+import { Assign, Expr, Literal, Logical, Variable } from "./expr.js";
+import { Block, Ifs, Print, Stmt, Vari } from "./stmt.js";
 import { Interpreter } from "./interpreter.js";
-import { runTests, TestErrorReporter, TestIO } from "./test.js";
+import {
+  expectAll,
+  expectEqual,
+  runTests,
+  TestErrorReporter,
+  TestIO,
+} from "./test.js";
 import { Environment } from "./environment.js";
-import { IDENTIFIER, Token } from "./token.js";
+import { AND, IDENTIFIER, OR, Token } from "./token.js";
 
 const allTests = [
   testInterpreterPrints,
   testInterpreterEvaluatesLiteral,
   testInterpreterManagesState,
+  testEnvironmentShadowing,
+  testControlFlow,
 ];
 
-runTests([testEnvironmentShadowing]);
+runTests([testControlFlow]);
 //runTests(allTests);
 
 function testInterpreterEvaluatesLiteral() {
@@ -97,6 +105,38 @@ function testEnvironmentShadowing() {
   ]);
 
   return true;
+}
+
+function testControlFlow() {
+  const andResultFalse = evaluate(
+    new Logical(new Literal(false), AND, new Literal("andResult"))
+  );
+  const andResultTrue = evaluate(
+    new Logical(new Literal(true), AND, new Literal("andResult"))
+  );
+  const orResultFalse = evaluate(
+    new Logical(new Literal(false), OR, new Literal("orResult"))
+  );
+  const orResultTrue = evaluate(
+    new Logical(new Literal(true), OR, new Literal("orResult"))
+  );
+
+  const [ifIO] = interpret([
+    new Ifs(new Literal(true), new Print(new Literal("ifResult"))),
+    new Ifs(
+      new Literal(false),
+      new Print(new Literal("ifResultThen")),
+      new Print(new Literal("ifResultElse"))
+    ),
+  ]);
+
+  return expectAll([
+    expectEqual(andResultFalse, false),
+    expectEqual(andResultTrue, "andResult"),
+    expectEqual(orResultFalse, false),
+    expectEqual(orResultTrue, "orResult"),
+    ifIO.expect(["ifResult", "ifResultElse"]),
+  ]);
 }
 
 /**

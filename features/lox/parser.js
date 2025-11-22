@@ -10,12 +10,15 @@ import {
   Unary,
   Variable,
   Assign,
+  Logical,
 } from "./expr.js";
-import { Block, Expression, Print, Stmt, Vari } from "./stmt.js";
+import { Block, Expression, Ifs, Print, Stmt, Vari } from "./stmt.js";
 import {
+  AND,
   BANG,
   BANG_EQUAL,
   CLASS,
+  ELSE,
   EOF,
   EQUAL,
   EQUAL_EQUAL,
@@ -33,6 +36,7 @@ import {
   MINUS,
   NIL,
   NUMBER,
+  OR,
   PLUS,
   PRINT,
   RETURN,
@@ -96,6 +100,20 @@ export class Parser {
     return this.expressionStatement();
   }
 
+  ifStatement() {
+    this.consume(LEFT_PAREN, "Expect '(' after 'if'");
+    const condition = this.expression();
+    this.consume(RIGHT_PAREN, "Expect ')' after 'if' condition");
+
+    const thenBranch = this.statement();
+    let elseBranch = null;
+    if (this.match(ELSE)) {
+      elseBranch = this.statement();
+    }
+
+    return new Ifs(condition, thenBranch, elseBranch);
+  }
+
   /**
    * @returns {Stmt}
    */
@@ -142,7 +160,7 @@ export class Parser {
   }
 
   assignment() {
-    const expr = this.equality();
+    const expr = this.or();
 
     if (this.match(EQUAL)) {
       const equals = this.previous();
@@ -154,6 +172,30 @@ export class Parser {
       }
 
       this.error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
+  }
+
+  or() {
+    let expr = this.and();
+
+    while (this.match(OR)) {
+      const operator = this.previous();
+      const right = this.and();
+      expr = new Logical(expr, operator, right);
+    }
+
+    return expr;
+  }
+
+  and() {
+    let expr = this.equality();
+
+    while (this.match(AND)) {
+      const operator = this.previous();
+      const right = this.equality();
+      expr = new Logical(expr, operator, right);
     }
 
     return expr;

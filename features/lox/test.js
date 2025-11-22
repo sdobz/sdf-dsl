@@ -49,6 +49,22 @@ export function runTests(tests) {
   }
 }
 
+export function expectEqual(a, b) {
+  const passing = a === b;
+  if (!passing) {
+    console.log(`Expected ${a} === ${b}`);
+  }
+  return passing;
+}
+
+/**
+ *
+ * @param {boolean[]} results
+ */
+export function expectAll(results) {
+  return results.reduce((prev, curr) => prev && curr, true);
+}
+
 export class TestIO {
   constructor() {
     this.messages = [];

@@ -4,6 +4,7 @@ function generateExpr() {
     "Binary   : left, operator,  right",
     "Grouping : expression",
     "Literal  : value",
+    "Logical  : left, operator, right",
     "Unary    : operator, right",
     "Variable : name",
   ]);
@@ -13,6 +14,7 @@ function generateStmt() {
   return defineAst("Stmt", [
     "Block      : statements",
     "Expression : expression",
+    "Ifs        : condition, thenBranch, elseBranch",
     "Print      : expression",
     "Vari       : name, initializer",
   ]);

@@ -16,6 +16,7 @@ import {
   LESS,
   LESS_EQUAL,
   MINUS,
+  OR,
   PLUS,
   SLASH,
   STAR,
@@ -90,6 +91,14 @@ export class Interpreter {
     this.evaluate(stmt.expression);
   }
 
+  visitIfsStmt(stmt) {
+    if (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.thenBranch);
+    } else {
+      this.execute(stmt.elseBranch);
+    }
+  }
+
   visitPrintStmt(stmt) {
     const value = this.evaluate(stmt.expression);
 
@@ -113,6 +122,18 @@ export class Interpreter {
 
   visitLiteralExpr(expr) {
     return expr.value;
+  }
+
+  visitLogicalExpr(expr) {
+    const left = this.evaluate(expr.left);
+
+    if (expr.operator.type === OR) {
+      if (this.isTruthy(left)) return left;
+    } else {
+      if (!this.isTruthy(left)) return left;
+    }
+
+    return this.evaluate(expr.right);
   }
 
   visitGroupingExpr(expr) {
