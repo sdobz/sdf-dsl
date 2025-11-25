@@ -25,7 +25,7 @@
             # pkgs.binaryen       # For wasm-opt
             # pkgs.pkg-config
             # pkgs.cmake
-            pkgs.busybox
+            pkgs.miniserve
             pkgs.quickjs
           ];
 
