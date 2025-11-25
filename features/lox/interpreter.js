@@ -3,7 +3,6 @@
 /** @typedef {import("./expr.js").Visitor} Visitor */
 /** @typedef {import("./types").ErrorReporter} ErrorReporter */
 /** @typedef {import("./types").IO} IO */
-/** @typedef {import("./types").Environment} Environment */
 /** @typedef {import("./types").Value} Value */
 
 import { Environment } from "./environment.js";
@@ -91,7 +90,7 @@ export class Interpreter {
     this.evaluate(stmt.expression);
   }
 
-  visitIfsStmt(stmt) {
+  visitIfStmt(stmt) {
     if (this.isTruthy(this.evaluate(stmt.condition))) {
       this.execute(stmt.thenBranch);
     } else {
@@ -105,13 +104,19 @@ export class Interpreter {
     this.io.print(this.stringify(value));
   }
 
-  visitVariStmt(stmt) {
+  visitVarStmt(stmt) {
     let value = null;
     if (stmt.initializer !== null) {
       value = this.evaluate(stmt.initializer);
     }
 
     this.environment.define(stmt.name.lexeme, value);
+  }
+
+  visitWhileStmt(stmt) {
+    while (this.isTruthy(this.evaluate(stmt.condition))) {
+      this.execute(stmt.body);
+    }
   }
 
   visitAssignExpr(expr) {

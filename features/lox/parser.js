@@ -12,7 +12,15 @@ import {
   Assign,
   Logical,
 } from "./expr.js";
-import { Block, Expression, Ifs, Print, Stmt, Vari } from "./stmt.js";
+import {
+  Block,
+  Expression,
+  IfStmt,
+  Print,
+  Stmt,
+  VarStmt,
+  WhileStmt,
+} from "./stmt.js";
 import {
   AND,
   BANG,
@@ -81,7 +89,7 @@ export class Parser {
    */
   declaration() {
     try {
-      if (this.match(VAR)) return this.variDeclaration();
+      if (this.match(VAR)) return this.varDeclaration();
 
       return this.statement();
     } catch (e) {
@@ -95,6 +103,7 @@ export class Parser {
    */
   statement() {
     if (this.match(PRINT)) return this.printStatement();
+    if (this.match(WHILE)) return this.whileStatement();
     if (this.match(LEFT_BRACE)) return new Block(this.block());
 
     return this.expressionStatement();
@@ -111,7 +120,7 @@ export class Parser {
       elseBranch = this.statement();
     }
 
-    return new Ifs(condition, thenBranch, elseBranch);
+    return new IfStmt(condition, thenBranch, elseBranch);
   }
 
   /**
@@ -125,7 +134,7 @@ export class Parser {
     return new Print(value);
   }
 
-  variDeclaration() {
+  varDeclaration() {
     const name = this.consume(IDENTIFIER, "Expect variable name.");
 
     let initializer = null;
@@ -135,7 +144,18 @@ export class Parser {
 
     this.consume(SEMICOLON, "Expect ';' after variable declaration.");
 
-    return new Vari(name, initializer);
+    return new VarStmt(name, initializer);
+  }
+
+  whileStatement() {
+    this.consume(LEFT_PAREN, "Expect '(' after 'while'");
+
+    const condition = this.expression();
+    this.consume(RIGHT_PAREN, "Expect ')' after condition");
+
+    const body = this.statement();
+
+    return new WhileStmt(condition, body);
   }
 
   /**

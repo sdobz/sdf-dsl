@@ -14,9 +14,10 @@ function generateStmt() {
   return defineAst("Stmt", [
     "Block      : statements",
     "Expression : expression",
-    "Ifs        : condition, thenBranch, elseBranch",
+    "IfStmt     : condition, thenBranch, elseBranch",
     "Print      : expression",
-    "Vari       : name, initializer",
+    "VarStmt    : name, initializer",
+    "WhileStmt  : condition, body",
   ]);
 }
 
@@ -49,7 +50,10 @@ ${typeDefs.join("\n")}
 function defineVisitor(baseName, types) {
   const fieldDefs = types.map((type) => {
     const className = type.split(":")[0].trim();
-    return ` * @property {(${className.toLowerCase()}: ${className}) => any} visit${className}${baseName}`;
+    const extendedName = className.endsWith(baseName)
+      ? className
+      : className + baseName;
+    return ` * @property {(${className.toLowerCase()}: ${className}) => any} visit${extendedName}`;
   });
 
   return `

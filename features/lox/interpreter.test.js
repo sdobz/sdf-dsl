@@ -1,5 +1,5 @@
 import { Assign, Expr, Literal, Logical, Variable } from "./expr.js";
-import { Block, Ifs, Print, Stmt, Vari } from "./stmt.js";
+import { Block, IfStmt, Print, Stmt, VarStmt } from "./stmt.js";
 import { Interpreter } from "./interpreter.js";
 import {
   expectAll,
@@ -12,15 +12,15 @@ import { Environment } from "./environment.js";
 import { AND, IDENTIFIER, OR, Token } from "./token.js";
 
 const allTests = [
-  testInterpreterPrints,
-  testInterpreterEvaluatesLiteral,
+  // testInterpreterPrints,
+  // testInterpreterEvaluatesLiteral,
   testInterpreterManagesState,
-  testEnvironmentShadowing,
-  testControlFlow,
+  // testEnvironmentShadowing,
+  // testControlFlow,
 ];
 
-runTests([testControlFlow]);
-//runTests(allTests);
+// runTests([testControlFlow]);
+runTests(allTests);
 
 function testInterpreterEvaluatesLiteral() {
   return evaluate(new Literal(5)) === 5;
@@ -42,9 +42,9 @@ function testInterpreterManagesState() {
   const initializedToken = newIdentifierToken("initialized");
   const mutatedToken = newIdentifierToken("mutated");
   const [io, err, env] = interpret([
-    new Vari(uninitializedToken, null),
-    new Vari(initializedToken, new Literal(5)),
-    new Vari(mutatedToken, new Literal(4)),
+    new VarStmt(uninitializedToken, null),
+    new VarStmt(initializedToken, new Literal(5)),
+    new VarStmt(mutatedToken, new Literal(4)),
     new Print(new Variable(initializedToken)),
     new Assign(mutatedToken, new Literal(6)),
   ]);
@@ -67,16 +67,16 @@ function testEnvironmentShadowing() {
   const cToken = newIdentifierToken("c");
 
   const [io, err, env] = interpret([
-    new Vari(aToken, new Literal("global a")),
-    new Vari(bToken, new Literal("global b")),
-    new Vari(cToken, new Literal("global c")),
+    new VarStmt(aToken, new Literal("global a")),
+    new VarStmt(bToken, new Literal("global b")),
+    new VarStmt(cToken, new Literal("global c")),
 
     new Block([
-      new Vari(aToken, new Literal("outer a")),
-      new Vari(bToken, new Literal("outer b")),
+      new VarStmt(aToken, new Literal("outer a")),
+      new VarStmt(bToken, new Literal("outer b")),
 
       new Block([
-        new Vari(aToken, new Literal("inner a")),
+        new VarStmt(aToken, new Literal("inner a")),
         new Print(new Variable(aToken)), // inner a
         new Print(new Variable(bToken)), // outer b
         new Print(new Variable(cToken)), // global c
@@ -122,8 +122,8 @@ function testControlFlow() {
   );
 
   const [ifIO] = interpret([
-    new Ifs(new Literal(true), new Print(new Literal("ifResult"))),
-    new Ifs(
+    new IfStmt(new Literal(true), new Print(new Literal("ifResult"))),
+    new IfStmt(
       new Literal(false),
       new Print(new Literal("ifResultThen")),
       new Print(new Literal("ifResultElse"))

@@ -1,12 +1,11 @@
-
-
 /**
  * @typedef {object} Visitor
  * @property {(block: Block) => any} visitBlockStmt
  * @property {(expression: Expression) => any} visitExpressionStmt
- * @property {(ifs: Ifs) => any} visitIfsStmt
+ * @property {(ifstmt: IfStmt) => any} visitIfStmt
  * @property {(print: Print) => any} visitPrintStmt
- * @property {(vari: Vari) => any} visitVariStmt
+ * @property {(varstmt: VarStmt) => any} visitVarStmt
+ * @property {(whilestmt: WhileStmt) => any} visitWhileStmt
  */
 
 export class Stmt {
@@ -16,7 +15,6 @@ export class Stmt {
    */
   accept(visitor) {}
 }
-
 
 export class Block extends Stmt {
   constructor(statements) {
@@ -40,7 +38,7 @@ export class Expression extends Stmt {
   }
 }
 
-export class Ifs extends Stmt {
+export class IfStmt extends Stmt {
   constructor(condition, thenBranch, elseBranch) {
     super();
     this.condition = condition;
@@ -49,7 +47,7 @@ export class Ifs extends Stmt {
   }
 
   accept(visitor) {
-    return visitor.visitIfsStmt(this);
+    return visitor.visitIfStmt(this);
   }
 }
 
@@ -64,7 +62,7 @@ export class Print extends Stmt {
   }
 }
 
-export class Vari extends Stmt {
+export class VarStmt extends Stmt {
   constructor(name, initializer) {
     super();
     this.name = name;
@@ -72,7 +70,18 @@ export class Vari extends Stmt {
   }
 
   accept(visitor) {
-    return visitor.visitVariStmt(this);
+    return visitor.visitVarStmt(this);
   }
 }
 
+export class WhileStmt extends Stmt {
+  constructor(condition, body) {
+    super();
+    this.condition = condition;
+    this.body = body;
+  }
+
+  accept(visitor) {
+    return visitor.visitWhileStmt(this);
+  }
+}
