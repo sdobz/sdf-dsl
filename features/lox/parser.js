@@ -102,11 +102,54 @@ export class Parser {
    * @returns {Stmt}
    */
   statement() {
+    if (this.match(FOR)) return this.forStatement();
     if (this.match(PRINT)) return this.printStatement();
     if (this.match(WHILE)) return this.whileStatement();
     if (this.match(LEFT_BRACE)) return new Block(this.block());
 
     return this.expressionStatement();
+  }
+
+  forStatement() {
+    this.consume(LEFT_PAREN, "Expect '(' after 'for' statement");
+
+    let initializer;
+    if (this.match(SEMICOLON)) {
+      initializer = null;
+    } else if (this.match(VAR)) {
+      initializer = this.varDeclaration();
+    } else {
+      initializer = this.expressionStatement();
+    }
+
+    let condition = null;
+
+    if (!this.check(SEMICOLON)) {
+      condition = this.expression();
+    }
+    this.consume(SEMICOLON, "Expect ';' after loop condition.");
+
+    let increment = null;
+    if (!this.check(RIGHT_PAREN)) {
+      increment = this.expression();
+    }
+
+    this.consume(RIGHT_PAREN, "Expect ')' after for clauses.");
+
+    let body = this.statement();
+
+    if (increment !== null) {
+      body = new Block([body, new Expression(increment)]);
+    }
+
+    if (condition === null) condition = new Literal(true);
+    body = new WhileStmt(condition, body);
+
+    if (initializer !== null) {
+      body = new Block([initializer, body]);
+    }
+
+    return body;
   }
 
   ifStatement() {
